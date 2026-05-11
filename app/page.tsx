@@ -5,20 +5,9 @@ import { adolescentes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { addDays, format, parseISO, isAfter, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, PlusCircle, History, Users, CheckCircle, RotateCcw, Printer } from 'lucide-react';
+import { Trash2, PlusCircle, History, Users, CheckCircle, RotateCcw } from 'lucide-react';
 import { addAdolescente, deleteAdolescente, arquivarAdolescente, reativarAdolescente } from "./actions";
-
-// Componente para o botão de imprimir que funciona no lado do cliente sem quebrar o build
-const PrintButton = () => {
-  return (
-    <button 
-      onClick={() => window.print()} 
-      className="mt-4 no-print flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg mx-auto hover:bg-slate-700 transition text-sm font-bold shadow-lg"
-    >
-      <Printer size={18} /> EXPORTAR PDF / IMPRIMIR
-    </button>
-  );
-};
+import PrintButton from "./PrintButton"; // Importando o novo botão
 
 export default async function Dashboard({
   searchParams,
@@ -62,22 +51,21 @@ export default async function Dashboard({
 
         <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none">
           
-          {/* FORMULÁRIO DE CADASTRO */}
           {currentTab === "ativos" && (
             <div className="p-6 border-b bg-slate-50/50 no-print">
               <form action={addAdolescente} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div className="md:col-span-2">
                   <label className="block text-[10px] font-bold uppercase mb-1 text-slate-500">Nome e Observação</label>
-                  <input name="nome" required className="w-full border border-slate-300 p-2 rounded text-sm mb-2 uppercase" placeholder="NOME COMPLETO" />
+                  <input name="nome" required className="w-full border border-slate-300 p-2 rounded text-sm mb-2 uppercase outline-none" placeholder="NOME COMPLETO" />
                   <input name="observacao" className="w-full border border-slate-300 p-2 rounded text-xs outline-none" placeholder="Observações (Opcional)" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase mb-1 text-slate-500">Apreensão</label>
-                  <input name="dataApreensao" type="date" required className="w-full border border-slate-300 p-2 rounded text-sm" />
+                  <input name="dataApreensao" type="date" required className="w-full border border-slate-300 p-2 rounded text-sm outline-none" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase mb-1 text-slate-500">Admissão</label>
-                  <input name="dataAdmissao" type="date" required className="w-full border border-slate-300 p-2 rounded text-sm" />
+                  <input name="dataAdmissao" type="date" required className="w-full border border-slate-300 p-2 rounded text-sm outline-none" />
                 </div>
                 <button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded text-sm transition shadow-md flex justify-center items-center gap-2">
                   <PlusCircle size={18} /> CADASTRAR
@@ -141,12 +129,12 @@ export default async function Dashboard({
                           {currentTab === "ativos" ? (
                             <form action={arquivarAdolescente} className="flex flex-col gap-1 items-center bg-slate-50 p-2 rounded border border-slate-200">
                               <input type="hidden" name="id" value={item.id} />
-                              <select name="motivo" className="text-[10px] border rounded p-1 w-32 bg-white outline-none">
+                              <select name="motivo" className="text-[10px] border rounded p-1 w-32 bg-white outline-none cursor-pointer">
                                 <option value="DESLIGADO">DESLIGADO</option>
                                 <option value="INTERNAÇÃO">INTERNAÇÃO</option>
                               </select>
-                              <input name="unidadeInternacao" placeholder="Unidade" className="text-[10px] border rounded p-1 w-32 uppercase" />
-                              <input name="dataInternacao" type="date" className="text-[10px] border rounded p-1 w-32" />
+                              <input name="unidadeInternacao" placeholder="Unidade" className="text-[10px] border rounded p-1 w-32 uppercase outline-none" />
+                              <input name="dataInternacao" type="date" className="text-[10px] border rounded p-1 w-32 outline-none" />
                               <button className="text-green-600 flex items-center gap-1 font-bold text-[10px] uppercase hover:underline mt-1">
                                 <CheckCircle size={14} /> Confirmar Baixa
                               </button>
@@ -170,7 +158,6 @@ export default async function Dashboard({
         </div>
       </div>
 
-      {/* CSS GLOBAL PARA IMPRESSÃO */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           .no-print { display: none !important; }
