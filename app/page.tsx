@@ -5,7 +5,7 @@ import { adolescentes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { addDays, format, parseISO, isAfter, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, PlusCircle, History, Users, CheckCircle, RotateCcw } from 'lucide-react';
+import { Trash2, PlusCircle, History, Users, CheckCircle, RotateCcw, Info } from 'lucide-react';
 import { addAdolescente, deleteAdolescente, arquivarAdolescente, reativarAdolescente } from "./actions";
 import PrintButton from "./PrintButton";
 
@@ -41,10 +41,10 @@ export default async function Dashboard({
         {/* NAVEGAÇÃO DE ABAS */}
         <div className="bg-white border-b flex px-6 shadow-sm no-print">
           <a href="?tab=ativos" className={`flex items-center gap-2 px-6 py-4 text-sm font-bold border-b-2 transition ${currentTab === 'ativos' ? 'border-green-600 text-green-700' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            ATIVOS ({listaAtivos.length})
+            <Users size={18} /> ATIVOS ({listaAtivos.length})
           </a>
           <a href="?tab=historico" className={`flex items-center gap-2 px-6 py-4 text-sm font-bold border-b-2 transition ${currentTab === 'historico' ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            HISTÓRICO ({listaHistorico.length})
+            <History size={18} /> HISTÓRICO ({listaHistorico.length})
           </a>
         </div>
 
@@ -96,6 +96,13 @@ export default async function Dashboard({
                   const isVencido = isAfter(hoje, dataSaidaPrevista);
                   const diasRestantes = differenceInDays(dataSaidaPrevista, hoje);
 
+                  // Nova lógica de cores: Verde para prazo cumprido, Vermelho para urgência
+                  const corCélula = isVencido 
+                    ? 'text-green-600 bg-green-50' // VERDE: Período concluído ✅
+                    : (diasRestantes <= 5 
+                        ? 'text-red-600 bg-red-50/50 animate-pulse' // VERMELHO: Alerta de Urgência 🚨
+                        : 'text-amber-700 bg-amber-50'); // ÂMBAR: Prazo normal
+
                   return (
                     <tr key={item.id} className="hover:bg-slate-50 transition group print:break-inside-avoid">
                       <td className="p-4 text-center text-slate-400 font-mono text-xs">{index + 1}</td>
@@ -104,10 +111,10 @@ export default async function Dashboard({
                       <td className="p-4 text-center">{format(parseISO(item.dataAdmissao), 'dd/MM/yyyy')}</td>
                       
                       {currentTab === "ativos" ? (
-                        <td className={`p-4 text-center font-black ${isVencido ? 'text-green-600 bg-green-50' : (diasRestantes <= 5 ? 'text-red-600 bg-red-50/50 animate-pulse' : 'text-amber-700 bg-amber-50')}`}>
+                        <td className={`p-4 text-center font-black ${corCélula}`}>
                           {format(dataSaidaPrevista, 'dd/MM/yyyy')}
                           {isVencido ? (
-                             <span className="block text-[9px] uppercase text-green-700 font-bold">Prazo Alcançado ✅</span>
+                             <span className="block text-[9px] uppercase font-bold text-green-700">Prazo Alcançado ✅</span>
                           ) : (
                             diasRestantes <= 5 && <span className="block text-[9px] uppercase">Faltam {diasRestantes} dias</span>
                           )}
@@ -125,7 +132,7 @@ export default async function Dashboard({
                           {currentTab === "ativos" ? (
                             <form action={arquivarAdolescente} className="flex flex-col gap-1 items-center bg-slate-50 p-2 rounded border border-slate-200">
                               <input type="hidden" name="id" value={item.id} />
-                              <select name="motivo" className="text-[10px] border rounded p-1 w-36 bg-white outline-none">
+                              <select name="motivo" className="text-[10px] border rounded p-1 w-36 bg-white outline-none cursor-pointer">
                                 <option value="DESLIGADO">DESLIGADO</option>
                                 <option value="INTERNAÇÃO">INTERNAÇÃO</option>
                               </select>
@@ -150,6 +157,45 @@ export default async function Dashboard({
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* RODAPÉ INFORMATIVO E LEGENDA (Escondidos na impressão) */}
+        <div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-slate-100 no-print">
+          <div className="flex flex-col md:flex-row justify-between gap-6">
+            <div>
+              <p className="text-[11px] text-slate-500 uppercase font-bold tracking-tighter">
+                Sistema de Gestão v1.3 • Timon-MA
+              </p>
+              <p className="text-[10px] text-slate-400 mt-1">Este controle segue o cálculo inteligente de 45 dias corridos.</p>
+            </div>
+            
+            {/* LEGENDA DE CORES SOLICITADA */}
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 flex flex-col gap-3">
+              <h4 className="text-xs font-bold uppercase text-slate-600 flex items-center gap-2">
+                <Info size={14} /> Legenda de Cores (Status do Prazo)
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 bg-green-50 rounded border border-green-200 flex items-center justify-center">
+                    <span className="text-green-700 font-black text-xs">A</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-green-800 uppercase">Prazo Alcançado ✅</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 bg-red-50/50 rounded border border-red-200 flex items-center justify-center animate-pulse">
+                    <span className="text-red-700 font-black text-xs">U</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-red-800 uppercase">Urgência (≤ 5 dias) 🚨</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 bg-amber-50 rounded border border-amber-200 flex items-center justify-center">
+                    <span className="text-amber-700 font-black text-xs">P</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-600 uppercase">Prazo Normal</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
