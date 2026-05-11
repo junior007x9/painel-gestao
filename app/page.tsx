@@ -95,10 +95,8 @@ export default async function Dashboard({
                   const hoje = new Date();
                   const isVencido = isAfter(hoje, dataSaidaPrevista);
 
-                  // Lógica: Verde se venceu, caso contrário cor padrão
-                  const corCélula = isVencido 
-                    ? 'text-green-600 bg-green-50' 
-                    : 'text-slate-600 bg-transparent';
+                  // Agora tudo relacionado ao prazo é Verde
+                  const corCélula = 'text-green-600 bg-green-50/30';
 
                   return (
                     <tr key={item.id} className="hover:bg-slate-50 transition group print:break-inside-avoid">
@@ -110,8 +108,10 @@ export default async function Dashboard({
                       {currentTab === "ativos" ? (
                         <td className={`p-4 text-center font-black ${corCélula}`}>
                           {format(dataSaidaPrevista, 'dd/MM/yyyy')}
-                          {isVencido && (
+                          {isVencido ? (
                              <span className="block text-[9px] uppercase font-bold text-green-700">Prazo Alcançado ✅</span>
+                          ) : (
+                            <span className="block text-[9px] uppercase font-bold text-green-500/80 tracking-tighter">Em Andamento</span>
                           )}
                         </td>
                       ) : (
@@ -155,31 +155,31 @@ export default async function Dashboard({
           </div>
         </div>
 
-        {/* LEGENDA SIMPLIFICADA */}
+        {/* LEGENDA ATUALIZADA */}
         <div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-slate-100 no-print">
           <div className="flex flex-col md:flex-row justify-between gap-6">
             <div>
               <p className="text-[11px] text-slate-500 uppercase font-bold tracking-tighter">
-                Sistema de Gestão v1.4 • Timon-MA
+                Sistema de Gestão v1.5 • Timon-MA
               </p>
             </div>
             
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 flex flex-col gap-3">
               <h4 className="text-xs font-bold uppercase text-slate-600 flex items-center gap-2">
-                <Info size={14} /> Legenda de Cores
+                <Info size={14} /> Legenda do Sistema
               </h4>
               <div className="flex flex-wrap gap-6">
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-green-50 rounded border border-green-200 flex items-center justify-center">
-                    <span className="text-green-700 font-black text-xs">A</span>
+                    <span className="text-green-700 font-black text-[10px]">A</span>
                   </div>
                   <span className="text-[10px] font-bold text-green-800 uppercase">Prazo Alcançado ✅</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-white rounded border border-slate-200 flex items-center justify-center">
-                    <span className="text-slate-400 font-black text-xs">P</span>
+                  <div className="w-5 h-5 bg-green-50/30 rounded border border-green-100 flex items-center justify-center">
+                    <span className="text-green-500 font-black text-[10px]">N</span>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">Prazo Normal</span>
+                  <span className="text-[10px] font-bold text-green-600/80 uppercase">Prazo em Andamento</span>
                 </div>
               </div>
             </div>
