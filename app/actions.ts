@@ -9,7 +9,6 @@ export async function addAdolescente(formData: FormData) {
   const nome = formData.get("nome") as string;
   const apreensao = formData.get("dataApreensao") as string;
   const admissao = formData.get("dataAdmissao") as string;
-  const obs = formData.get("observacao") as string;
 
   if (!nome || !apreensao || !admissao) return;
 
@@ -17,7 +16,6 @@ export async function addAdolescente(formData: FormData) {
     nome: nome.toUpperCase(),
     dataApreensao: apreensao,
     dataAdmissao: admissao,
-    observacao: obs,
     status: 'ativo',
   });
 
@@ -34,6 +32,7 @@ export async function arquivarAdolescente(formData: FormData) {
   const motivo = formData.get("motivo") as string;
   const unidade = formData.get("unidadeInternacao") as string;
   const dataInt = formData.get("dataInternacao") as string;
+  const obs = formData.get("observacao") as string; // Observação na saída
 
   await db.update(adolescentes)
     .set({ 
@@ -41,7 +40,8 @@ export async function arquivarAdolescente(formData: FormData) {
       dataSaidaReal: new Date().toISOString(),
       motivoSaida: motivo,
       unidadeInternacao: unidade || null,
-      dataInternacao: dataInt || null
+      dataInternacao: dataInt || null,
+      observacao: obs || null
     })
     .where(eq(adolescentes.id, id));
   
@@ -55,7 +55,8 @@ export async function reativarAdolescente(id: number) {
       dataSaidaReal: null,
       motivoSaida: null,
       unidadeInternacao: null,
-      dataInternacao: null
+      dataInternacao: null,
+      observacao: null
     })
     .where(eq(adolescentes.id, id));
   

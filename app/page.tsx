@@ -7,7 +7,7 @@ import { addDays, format, parseISO, isAfter, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Trash2, PlusCircle, History, Users, CheckCircle, RotateCcw } from 'lucide-react';
 import { addAdolescente, deleteAdolescente, arquivarAdolescente, reativarAdolescente } from "./actions";
-import PrintButton from "./PrintButton"; // Importando o novo botão
+import PrintButton from "./PrintButton";
 
 export default async function Dashboard({
   searchParams,
@@ -33,7 +33,6 @@ export default async function Dashboard({
           <p className="text-xs text-slate-500 mt-1 capitalize print:text-black">
             {format(new Date(), "eeee, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
           </p>
-          
           <div className="no-print">
             <PrintButton />
           </div>
@@ -42,22 +41,22 @@ export default async function Dashboard({
         {/* NAVEGAÇÃO DE ABAS */}
         <div className="bg-white border-b flex px-6 shadow-sm no-print">
           <a href="?tab=ativos" className={`flex items-center gap-2 px-6 py-4 text-sm font-bold border-b-2 transition ${currentTab === 'ativos' ? 'border-green-600 text-green-700' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            <Users size={18} /> ATIVOS ({listaAtivos.length})
+            ATIVOS ({listaAtivos.length})
           </a>
           <a href="?tab=historico" className={`flex items-center gap-2 px-6 py-4 text-sm font-bold border-b-2 transition ${currentTab === 'historico' ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            <History size={18} /> HISTÓRICO ({listaHistorico.length})
+            HISTÓRICO ({listaHistorico.length})
           </a>
         </div>
 
         <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none">
           
+          {/* FORMULÁRIO DE CADASTRO */}
           {currentTab === "ativos" && (
             <div className="p-6 border-b bg-slate-50/50 no-print">
-              <form action={addAdolescente} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                <div className="md:col-span-2">
-                  <label className="block text-[10px] font-bold uppercase mb-1 text-slate-500">Nome e Observação</label>
-                  <input name="nome" required className="w-full border border-slate-300 p-2 rounded text-sm mb-2 uppercase outline-none" placeholder="NOME COMPLETO" />
-                  <input name="observacao" className="w-full border border-slate-300 p-2 rounded text-xs outline-none" placeholder="Observações (Opcional)" />
+              <form action={addAdolescente} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className="md:col-span-1">
+                  <label className="block text-[10px] font-bold uppercase mb-1 text-slate-500">Nome do Adolescente</label>
+                  <input name="nome" required className="w-full border border-slate-300 p-2 rounded text-sm uppercase outline-none" placeholder="NOME COMPLETO" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase mb-1 text-slate-500">Apreensão</label>
@@ -67,7 +66,7 @@ export default async function Dashboard({
                   <label className="block text-[10px] font-bold uppercase mb-1 text-slate-500">Admissão</label>
                   <input name="dataAdmissao" type="date" required className="w-full border border-slate-300 p-2 rounded text-sm outline-none" />
                 </div>
-                <button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded text-sm transition shadow-md flex justify-center items-center gap-2">
+                <button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded text-sm transition shadow-md flex justify-center items-center gap-2">
                   <PlusCircle size={18} /> CADASTRAR
                 </button>
               </form>
@@ -79,13 +78,13 @@ export default async function Dashboard({
               <thead>
                 <tr className="bg-slate-100 text-slate-500 uppercase text-[10px] font-bold border-b print:bg-gray-200 print:text-black">
                   <th className="p-4 text-center w-12">#</th>
-                  <th className="p-4 text-left">Nome / Obs</th>
+                  <th className="p-4 text-left">Nome do Adolescente</th>
                   <th className="p-4 text-center">Apreensão</th>
                   <th className="p-4 text-center">Admissão</th>
                   {currentTab === "ativos" ? (
                     <th className="p-4 text-center">Prazo 45 Dias</th>
                   ) : (
-                    <th className="p-4 text-center">Desfecho / Unidade</th>
+                    <th className="p-4 text-center">Desfecho / Obs</th>
                   )}
                   <th className="p-4 text-center no-print">Ações</th>
                 </tr>
@@ -100,27 +99,24 @@ export default async function Dashboard({
                   return (
                     <tr key={item.id} className="hover:bg-slate-50 transition group print:break-inside-avoid">
                       <td className="p-4 text-center text-slate-400 font-mono text-xs">{index + 1}</td>
-                      <td className="p-4">
-                        <div className="font-bold uppercase text-slate-700">{item.nome}</div>
-                        {item.observacao && <div className="text-[10px] text-slate-400 italic">{item.observacao}</div>}
-                      </td>
+                      <td className="p-4 font-bold uppercase text-slate-700">{item.nome}</td>
                       <td className="p-4 text-center">{format(parseISO(item.dataApreensao), 'dd/MM/yyyy')}</td>
                       <td className="p-4 text-center">{format(parseISO(item.dataAdmissao), 'dd/MM/yyyy')}</td>
                       
                       {currentTab === "ativos" ? (
-                        <td className={`p-4 text-center font-black ${isVencido ? 'text-green-600 bg-green-50' : (diasRestantes <= 5 ? 'text-red-600 bg-red-50/50' : 'text-amber-700 bg-amber-50')}`}>
+                        <td className={`p-4 text-center font-black ${isVencido ? 'text-green-600 bg-green-50' : (diasRestantes <= 5 ? 'text-red-600 bg-red-50/50 animate-pulse' : 'text-amber-700 bg-amber-50')}`}>
                           {format(dataSaidaPrevista, 'dd/MM/yyyy')}
-                          {isVencido && <span className="block text-[9px] uppercase">Prazo Alcançado</span>}
-                          {!isVencido && diasRestantes <= 5 && <span className="block text-[9px] animate-pulse uppercase">Faltam {diasRestantes} dias</span>}
+                          {isVencido ? (
+                             <span className="block text-[9px] uppercase text-green-700 font-bold">Prazo Alcançado ✅</span>
+                          ) : (
+                            diasRestantes <= 5 && <span className="block text-[9px] uppercase">Faltam {diasRestantes} dias</span>
+                          )}
                         </td>
                       ) : (
                         <td className="p-4 text-center">
                           <div className="font-bold text-blue-700 uppercase text-xs">{item.motivoSaida}</div>
-                          {item.unidadeInternacao && (
-                            <div className="text-[10px] text-slate-500 uppercase">
-                              {item.unidadeInternacao} - {item.dataInternacao && format(parseISO(item.dataInternacao), 'dd/MM')}
-                            </div>
-                          )}
+                          {item.unidadeInternacao && <div className="text-[10px] text-slate-500 uppercase">Unidade: {item.unidadeInternacao}</div>}
+                          {item.observacao && <div className="text-[10px] text-slate-400 italic">Obs: {item.observacao}</div>}
                         </td>
                       )}
 
@@ -129,12 +125,12 @@ export default async function Dashboard({
                           {currentTab === "ativos" ? (
                             <form action={arquivarAdolescente} className="flex flex-col gap-1 items-center bg-slate-50 p-2 rounded border border-slate-200">
                               <input type="hidden" name="id" value={item.id} />
-                              <select name="motivo" className="text-[10px] border rounded p-1 w-32 bg-white outline-none cursor-pointer">
+                              <select name="motivo" className="text-[10px] border rounded p-1 w-36 bg-white outline-none">
                                 <option value="DESLIGADO">DESLIGADO</option>
                                 <option value="INTERNAÇÃO">INTERNAÇÃO</option>
                               </select>
-                              <input name="unidadeInternacao" placeholder="Unidade" className="text-[10px] border rounded p-1 w-32 uppercase outline-none" />
-                              <input name="dataInternacao" type="date" className="text-[10px] border rounded p-1 w-32 outline-none" />
+                              <input name="unidadeInternacao" placeholder="Unidade (se houver)" className="text-[10px] border rounded p-1 w-36 uppercase outline-none" />
+                              <input name="observacao" placeholder="Observações de saída" className="text-[10px] border rounded p-1 w-36 outline-none" />
                               <button className="text-green-600 flex items-center gap-1 font-bold text-[10px] uppercase hover:underline mt-1">
                                 <CheckCircle size={14} /> Confirmar Baixa
                               </button>
