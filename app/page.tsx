@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { db } from "@/db";
 import { adolescentes } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { addDays, format, parseISO, isAfter, differenceInDays } from 'date-fns';
+import { addDays, format, parseISO, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Trash2, PlusCircle, History, Users, CheckCircle, RotateCcw, Info } from 'lucide-react';
 import { addAdolescente, deleteAdolescente, arquivarAdolescente, reativarAdolescente } from "./actions";
@@ -94,14 +94,11 @@ export default async function Dashboard({
                   const dataSaidaPrevista = addDays(parseISO(item.dataApreensao), 44);
                   const hoje = new Date();
                   const isVencido = isAfter(hoje, dataSaidaPrevista);
-                  const diasRestantes = differenceInDays(dataSaidaPrevista, hoje);
 
-                  // Nova lógica de cores: Verde para prazo cumprido, Vermelho para urgência
+                  // Lógica: Verde se venceu, caso contrário cor padrão
                   const corCélula = isVencido 
-                    ? 'text-green-600 bg-green-50' // VERDE: Período concluído ✅
-                    : (diasRestantes <= 5 
-                        ? 'text-red-600 bg-red-50/50 animate-pulse' // VERMELHO: Alerta de Urgência 🚨
-                        : 'text-amber-700 bg-amber-50'); // ÂMBAR: Prazo normal
+                    ? 'text-green-600 bg-green-50' 
+                    : 'text-slate-600 bg-transparent';
 
                   return (
                     <tr key={item.id} className="hover:bg-slate-50 transition group print:break-inside-avoid">
@@ -113,10 +110,8 @@ export default async function Dashboard({
                       {currentTab === "ativos" ? (
                         <td className={`p-4 text-center font-black ${corCélula}`}>
                           {format(dataSaidaPrevista, 'dd/MM/yyyy')}
-                          {isVencido ? (
+                          {isVencido && (
                              <span className="block text-[9px] uppercase font-bold text-green-700">Prazo Alcançado ✅</span>
-                          ) : (
-                            diasRestantes <= 5 && <span className="block text-[9px] uppercase">Faltam {diasRestantes} dias</span>
                           )}
                         </td>
                       ) : (
@@ -148,7 +143,7 @@ export default async function Dashboard({
                             </form>
                           )}
                           <form action={async () => { 'use server'; await deleteAdolescente(item.id); }}>
-                            <button className="text-slate-300 hover:text-red-600 p-1 transition"><Trash2 size={18} /></button>
+                            <button title="Excluir" className="text-slate-300 hover:text-red-600 p-1 transition"><Trash2 size={18} /></button>
                           </form>
                         </div>
                       </td>
@@ -160,22 +155,20 @@ export default async function Dashboard({
           </div>
         </div>
 
-        {/* RODAPÉ INFORMATIVO E LEGENDA (Escondidos na impressão) */}
+        {/* LEGENDA SIMPLIFICADA */}
         <div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-slate-100 no-print">
           <div className="flex flex-col md:flex-row justify-between gap-6">
             <div>
               <p className="text-[11px] text-slate-500 uppercase font-bold tracking-tighter">
-                Sistema de Gestão v1.3 • Timon-MA
+                Sistema de Gestão v1.4 • Timon-MA
               </p>
-              <p className="text-[10px] text-slate-400 mt-1">Este controle segue o cálculo inteligente de 45 dias corridos.</p>
             </div>
             
-            {/* LEGENDA DE CORES SOLICITADA */}
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 flex flex-col gap-3">
               <h4 className="text-xs font-bold uppercase text-slate-600 flex items-center gap-2">
-                <Info size={14} /> Legenda de Cores (Status do Prazo)
+                <Info size={14} /> Legenda de Cores
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="flex flex-wrap gap-6">
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 bg-green-50 rounded border border-green-200 flex items-center justify-center">
                     <span className="text-green-700 font-black text-xs">A</span>
@@ -183,16 +176,10 @@ export default async function Dashboard({
                   <span className="text-[10px] font-bold text-green-800 uppercase">Prazo Alcançado ✅</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-red-50/50 rounded border border-red-200 flex items-center justify-center animate-pulse">
-                    <span className="text-red-700 font-black text-xs">U</span>
+                  <div className="w-5 h-5 bg-white rounded border border-slate-200 flex items-center justify-center">
+                    <span className="text-slate-400 font-black text-xs">P</span>
                   </div>
-                  <span className="text-[10px] font-bold text-red-800 uppercase">Urgência (≤ 5 dias) 🚨</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-amber-50 rounded border border-amber-200 flex items-center justify-center">
-                    <span className="text-amber-700 font-black text-xs">P</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-600 uppercase">Prazo Normal</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">Prazo Normal</span>
                 </div>
               </div>
             </div>
