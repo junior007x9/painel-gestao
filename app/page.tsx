@@ -5,15 +5,32 @@ import { adolescentes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { addDays, format, parseISO, isAfter, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, PlusCircle, History, Users, CheckCircle, RotateCcw, Printer, Info } from 'lucide-react';
+import { Trash2, PlusCircle, History, Users, CheckCircle, RotateCcw, Printer } from 'lucide-react';
 import { addAdolescente, deleteAdolescente, arquivarAdolescente, reativarAdolescente } from "./actions";
 
-export default async function Dashboard({ searchParams }: { searchParams: { tab?: string } }) {
+// Componente para o botão de imprimir que funciona no lado do cliente sem quebrar o build
+const PrintButton = () => {
+  return (
+    <button 
+      onClick={() => window.print()} 
+      className="mt-4 no-print flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg mx-auto hover:bg-slate-700 transition text-sm font-bold shadow-lg"
+    >
+      <Printer size={18} /> EXPORTAR PDF / IMPRIMIR
+    </button>
+  );
+};
+
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const params = await searchParams;
   const currentTab = params.tab || "ativos";
 
   const listaAtivos = await db.select().from(adolescentes).where(eq(adolescentes.status, 'ativo'));
   const listaHistorico = await db.select().from(adolescentes).where(eq(adolescentes.status, 'arquivado'));
+
   const dataExibicao = currentTab === "ativos" ? listaAtivos : listaHistorico;
 
   return (
@@ -21,34 +38,31 @@ export default async function Dashboard({ searchParams }: { searchParams: { tab?
       <div className="max-w-6xl mx-auto">
         
         {/* CABEÇALHO */}
-        <div className="bg-white p-6 rounded-t-xl border-b-2 border-slate-200 shadow-sm text-center print:shadow-none print:border-b-4 print:border-black">
+        <div className="bg-white p-6 rounded-t-xl border-b-2 border-slate-200 shadow-sm text-center print:border-b-4 print:border-black print:shadow-none">
           <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] print:text-black">Estado do Maranhão</h2>
           <h1 className="text-xl font-black uppercase mt-1 text-slate-800 print:text-black">Controle Socioeducativo - 45 Dias</h1>
           <p className="text-xs text-slate-500 mt-1 capitalize print:text-black">
             {format(new Date(), "eeee, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
           </p>
           
-          <button 
-            onClick="window.print()" 
-            className="mt-4 no-print flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg mx-auto hover:bg-slate-700 transition text-sm font-bold"
-          >
-            <Printer size={18} /> EXPORTAR PDF / IMPRIMIR
-          </button>
+          <div className="no-print">
+            <PrintButton />
+          </div>
         </div>
 
-        {/* ABAS (Escondidas na impressão) */}
+        {/* NAVEGAÇÃO DE ABAS */}
         <div className="bg-white border-b flex px-6 shadow-sm no-print">
           <a href="?tab=ativos" className={`flex items-center gap-2 px-6 py-4 text-sm font-bold border-b-2 transition ${currentTab === 'ativos' ? 'border-green-600 text-green-700' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            ATIVOS ({listaAtivos.length})
+            <Users size={18} /> ATIVOS ({listaAtivos.length})
           </a>
           <a href="?tab=historico" className={`flex items-center gap-2 px-6 py-4 text-sm font-bold border-b-2 transition ${currentTab === 'historico' ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            HISTÓRICO ({listaHistorico.length})
+            <History size={18} /> HISTÓRICO ({listaHistorico.length})
           </a>
         </div>
 
         <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none">
           
-          {/* FORMULÁRIO (Escondido na impressão) */}
+          {/* FORMULÁRIO DE CADASTRO */}
           {currentTab === "ativos" && (
             <div className="p-6 border-b bg-slate-50/50 no-print">
               <form action={addAdolescente} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
@@ -93,6 +107,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { tab?
                   const dataSaidaPrevista = addDays(parseISO(item.dataApreensao), 44);
                   const hoje = new Date();
                   const isVencido = isAfter(hoje, dataSaidaPrevista);
+                  const diasRestantes = differenceInDays(dataSaidaPrevista, hoje);
 
                   return (
                     <tr key={item.id} className="hover:bg-slate-50 transition group print:break-inside-avoid">
@@ -105,9 +120,10 @@ export default async function Dashboard({ searchParams }: { searchParams: { tab?
                       <td className="p-4 text-center">{format(parseISO(item.dataAdmissao), 'dd/MM/yyyy')}</td>
                       
                       {currentTab === "ativos" ? (
-                        <td className={`p-4 text-center font-black ${isVencido ? 'text-green-600 bg-green-50' : 'text-amber-700 bg-amber-50'}`}>
+                        <td className={`p-4 text-center font-black ${isVencido ? 'text-green-600 bg-green-50' : (diasRestantes <= 5 ? 'text-red-600 bg-red-50/50' : 'text-amber-700 bg-amber-50')}`}>
                           {format(dataSaidaPrevista, 'dd/MM/yyyy')}
                           {isVencido && <span className="block text-[9px] uppercase">Prazo Alcançado</span>}
+                          {!isVencido && diasRestantes <= 5 && <span className="block text-[9px] animate-pulse uppercase">Faltam {diasRestantes} dias</span>}
                         </td>
                       ) : (
                         <td className="p-4 text-center">
@@ -121,27 +137,27 @@ export default async function Dashboard({ searchParams }: { searchParams: { tab?
                       )}
 
                       <td className="p-4 text-center no-print">
-                        <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                        <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition items-center">
                           {currentTab === "ativos" ? (
-                            <form action={arquivarAdolescente} className="flex flex-col gap-1 items-center bg-slate-50 p-2 rounded border">
+                            <form action={arquivarAdolescente} className="flex flex-col gap-1 items-center bg-slate-50 p-2 rounded border border-slate-200">
                               <input type="hidden" name="id" value={item.id} />
-                              <select name="motivo" className="text-[10px] border rounded p-1 w-32 mb-1">
+                              <select name="motivo" className="text-[10px] border rounded p-1 w-32 bg-white outline-none">
                                 <option value="DESLIGADO">DESLIGADO</option>
                                 <option value="INTERNAÇÃO">INTERNAÇÃO</option>
                               </select>
-                              <input name="unidadeInternacao" placeholder="Unidade" className="text-[10px] border rounded p-1 w-32 mb-1" />
-                              <input name="dataInternacao" type="date" className="text-[10px] border rounded p-1 w-32 mb-1" />
-                              <button className="text-green-600 flex items-center gap-1 font-bold text-[10px] uppercase hover:underline">
+                              <input name="unidadeInternacao" placeholder="Unidade" className="text-[10px] border rounded p-1 w-32 uppercase" />
+                              <input name="dataInternacao" type="date" className="text-[10px] border rounded p-1 w-32" />
+                              <button className="text-green-600 flex items-center gap-1 font-bold text-[10px] uppercase hover:underline mt-1">
                                 <CheckCircle size={14} /> Confirmar Baixa
                               </button>
                             </form>
                           ) : (
                             <form action={async () => { 'use server'; await reativarAdolescente(item.id); }}>
-                              <button title="Reativar" className="text-orange-500 p-1"><RotateCcw size={18} /></button>
+                              <button title="Reativar" className="text-orange-500 p-1 hover:bg-orange-50 rounded transition"><RotateCcw size={18} /></button>
                             </form>
                           )}
                           <form action={async () => { 'use server'; await deleteAdolescente(item.id); }}>
-                            <button className="text-slate-300 hover:text-red-600 p-1"><Trash2 size={18} /></button>
+                            <button className="text-slate-300 hover:text-red-600 p-1 transition"><Trash2 size={18} /></button>
                           </form>
                         </div>
                       </td>
@@ -154,13 +170,14 @@ export default async function Dashboard({ searchParams }: { searchParams: { tab?
         </div>
       </div>
 
-      {/* CSS para Impressão */}
+      {/* CSS GLOBAL PARA IMPRESSÃO */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           .no-print { display: none !important; }
-          body { background-color: white !important; }
-          table { border: 1px solid #000 !important; }
-          th, td { border: 1px solid #000 !important; color: black !important; }
+          body { background-color: white !important; padding: 0 !important; }
+          table { border-collapse: collapse !important; width: 100% !important; }
+          th, td { border: 1px solid #000 !important; color: black !important; padding: 8px !important; }
+          tr { page-break-inside: avoid !important; }
         }
       `}} />
     </div>
