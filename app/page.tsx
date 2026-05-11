@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { db } from "@/db";
 import { adolescentes } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -11,9 +13,11 @@ export default async function Dashboard({
 }: {
   searchParams: { tab?: string };
 }) {
-  const currentTab = searchParams.tab || "ativos";
+  // Resolve o parâmetro de busca para definir a aba
+  const params = await searchParams;
+  const currentTab = params.tab || "ativos";
 
-  // Busca dados do Turso baseados na aba selecionada
+  // Busca dados do Turso filtrando pelo status
   const listaAtivos = await db.select().from(adolescentes).where(eq(adolescentes.status, 'ativo'));
   const listaHistorico = await db.select().from(adolescentes).where(eq(adolescentes.status, 'arquivado'));
 
