@@ -1,6 +1,5 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
-// Módulo Internação
 export const adolescentes = sqliteTable("adolescentes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   nome: text("nome").notNull(),
@@ -14,21 +13,19 @@ export const adolescentes = sqliteTable("adolescentes", {
   observacao: text("observacao"),                  
 });
 
-// Módulo Relatórios
 export const relatorios = sqliteTable("relatorios", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   nome: text("nome").notNull(),
   nProcesso: text("n_processo").notNull(),
   dataEntrega: text("data_entrega").notNull(),
-  status: text("status").default("pendente"),
+  status: text("status").default("ativo"), // 'ativo' ou 'arquivado'
 });
 
-// NOVO: Módulo Audiências
 export const audiencias = sqliteTable("audiencias", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  nomes: text("nomes").notNull(), // Aqui salvaremos os nomes separados por vírgula
+  nomes: text("nomes").notNull(),
   data: text("data").notNull(),
   hora: text("hora").notNull(),
   nProcesso: text("n_processo").notNull(),
-  status: text("status").default("agendada"),
+  status: text("status").default("ativo"), // 'ativo' ou 'arquivado'
 });
