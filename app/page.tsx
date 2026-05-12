@@ -93,8 +93,12 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
                     <th className="p-4 w-12">#</th>
                     <th className="p-4 text-left">Nome Completo</th>
                     <th className="p-4 text-center">Apreensão</th>
-                    <th className="p-4 text-center text-green-700">Prazo 45 Dias</th>
-                    {currentTab === "ativos" ? <th className="p-4 text-center">Admissão Unidade</th> : <th className="p-4 text-center">Desfecho</th>}
+                    <th className="p-4 text-center">Admissão Unidade</th>
+                    {currentTab === "ativos" ? (
+                      <th className="p-4 text-center text-green-700">Prazo 45 Dias</th>
+                    ) : (
+                      <th className="p-4 text-center">Desfecho</th>
+                    )}
                     <th className="p-4 text-center no-print">Ações</th>
                   </tr>
                 </thead>
@@ -107,11 +111,11 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
                         <td className="p-4 text-center text-slate-400 font-mono text-xs">{index + 1}</td>
                         <td className="p-4 font-bold uppercase">{item.nome}</td>
                         <td className="p-4 text-center">{format(parseISO(item.dataApreensao), 'dd/MM/yyyy')}</td>
-                        <td className="p-4 text-center font-black bg-green-50/30 text-green-600">
-                          {format(dataSaida, 'dd/MM/yyyy')} {isVencido && <span className="block text-[9px] uppercase font-bold text-green-700">Prazo Alcançado ✅</span>}
-                        </td>
+                        <td className="p-4 text-center">{format(parseISO(item.dataAdmissao), 'dd/MM/yyyy')}</td>
                         {currentTab === "ativos" ? (
-                          <td className="p-4 text-center">{format(parseISO(item.dataAdmissao), 'dd/MM/yyyy')}</td>
+                          <td className="p-4 text-center font-black bg-green-50/30 text-green-600">
+                            {format(dataSaida, 'dd/MM/yyyy')} {isVencido && <span className="block text-[9px] uppercase font-bold text-green-700">Prazo Alcançado ✅</span>}
+                          </td>
                         ) : (
                           <td className="p-4 text-center font-bold text-blue-700 uppercase text-[10px]">{item.motivoSaida}</td>
                         )}
