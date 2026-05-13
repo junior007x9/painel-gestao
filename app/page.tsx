@@ -36,7 +36,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
         {/* SELETOR DE MÓDULO */}
         <div className="flex flex-wrap justify-center gap-2 mb-6 no-print">
           <a href="?mod=internacao" className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold transition shadow-sm ${currentMod === 'internacao' ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 hover:bg-slate-100'}`}>
-            <Users size={18} /> CONTROLE 45 DIAS
+            <Users size={18} /> FASE (45 DIAS)
           </a>
           <a href="?mod=relatorios" className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-bold transition shadow-sm ${currentMod === 'relatorios' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-100'}`}>
             <FileText size={18} /> RELATÓRIOS
@@ -51,7 +51,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
           <div className="p-6">
             <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] print:text-black">Estado do Maranhão • Timon</h2>
             <h1 className="text-xl font-black uppercase mt-1 text-slate-800 print:text-black">
-              {currentMod === 'internacao' ? "Controle Socioeducativo - 45 Dias" : currentMod === 'relatorios' ? "Relatórios de Acompanhamento" : "Controle de Audiências Judiciais"}
+              {currentMod === 'internacao' ? "FASE FUNDAÇÃO DO ATENDIMENTO SOCIOEDUCATIVO" : currentMod === 'relatorios' ? "Relatórios de Acompanhamento" : "Controle de Audiências Judiciais"}
             </h1>
             <p className="text-xs text-slate-500 mt-1 capitalize print:text-black">
               {format(new Date(), "eeee, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
@@ -72,7 +72,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
           </div>
         </div>
 
-        {/* --- MÓDULO 45 DIAS --- */}
+        {/* --- MÓDULO FASE (45 DIAS) --- */}
         {currentMod === 'internacao' && (
           <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none">
             {currentTab === "ativos" && (
@@ -97,7 +97,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
                     {currentTab === "ativos" ? (
                       <th className="p-4 text-center text-green-700">Prazo 45 Dias</th>
                     ) : (
-                      <th className="p-4 text-center">Desfecho</th>
+                      <th className="p-4 text-center">Desfecho / Obs</th>
                     )}
                     <th className="p-4 text-center no-print">Ações</th>
                   </tr>
@@ -112,19 +112,31 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
                         <td className="p-4 font-bold uppercase">{item.nome}</td>
                         <td className="p-4 text-center">{format(parseISO(item.dataApreensao), 'dd/MM/yyyy')}</td>
                         <td className="p-4 text-center">{format(parseISO(item.dataAdmissao), 'dd/MM/yyyy')}</td>
+                        
                         {currentTab === "ativos" ? (
                           <td className="p-4 text-center font-black bg-green-50/30 text-green-600">
-                            {format(dataSaida, 'dd/MM/yyyy')} {isVencido && <span className="block text-[9px] uppercase font-bold text-green-700">Prazo Alcançado ✅</span>}
+                            {format(dataSaida, 'dd/MM/yyyy')} 
+                            {isVencido && <span className="block text-[9px] uppercase font-bold text-green-700">Prazo Alcançado ✅</span>}
                           </td>
                         ) : (
-                          <td className="p-4 text-center font-bold text-blue-700 uppercase text-[10px]">{item.motivoSaida}</td>
+                          <td className="p-4 text-center">
+                            <div className="font-bold text-blue-700 uppercase text-[10px]">{item.motivoSaida}</div>
+                            {item.observacao && <div className="text-[10px] text-slate-400 italic">Obs: {item.observacao}</div>}
+                          </td>
                         )}
+
                         <td className="p-4 text-center no-print">
                            {currentTab === 'ativos' ? (
-                             <form action={arquivarAdolescente} className="flex justify-center gap-1 items-center">
+                             <form action={arquivarAdolescente} className="flex flex-col gap-1 items-center bg-slate-50 p-2 rounded border border-slate-200 w-40 mx-auto">
                                <input type="hidden" name="id" value={item.id} />
-                               <select name="motivo" className="text-[10px] border rounded p-1 bg-white outline-none"><option value="DESLIGADO">DESLIGADO</option><option value="INTERNAÇÃO">INTERNAÇÃO</option></select>
-                               <button className="text-green-600 hover:bg-green-50 p-1 rounded transition" title="Dar Baixa"><CheckCircle size={18} /></button>
+                               <select name="motivo" className="text-[10px] border rounded p-1 w-full bg-white outline-none cursor-pointer">
+                                 <option value="DESLIGADO">DESLIGADO</option>
+                                 <option value="INTERNAÇÃO">INTERNAÇÃO</option>
+                               </select>
+                               <input name="observacao" placeholder="Observações de saída" className="text-[10px] border rounded p-1 w-full outline-none" />
+                               <button className="text-green-600 flex items-center justify-center gap-1 font-bold text-[10px] uppercase hover:underline mt-1 w-full">
+                                 <CheckCircle size={14} /> Confirmar Baixa
+                               </button>
                              </form>
                            ) : (
                              <div className="flex justify-center gap-2">
@@ -224,8 +236,8 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
         {/* LEGENDA GERAL INFORMATIVA E COLORIDA */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 no-print text-[10px] uppercase font-black">
           <div className="bg-green-50 text-green-800 p-4 rounded-xl border border-green-200 shadow-sm">
-             <div className="flex items-center gap-2 mb-1"><Info size={14}/> Controle 45 Dias</div>
-             <p className="font-bold lowercase text-xs first-letter:uppercase opacity-80">Monitora o tempo de internação. Use a aba de Histórico para ver adolescentes que já receberam baixa (Transferência/Desligamento).</p>
+             <div className="flex items-center gap-2 mb-1"><Info size={14}/> FASE (45 DIAS)</div>
+             <p className="font-bold lowercase text-xs first-letter:uppercase opacity-80">Monitora o tempo de internação. Use a aba de Histórico para ver adolescentes que já receberam baixa (Internação/Desligamento).</p>
           </div>
           <div className="bg-indigo-50 text-indigo-800 p-4 rounded-xl border border-indigo-200 shadow-sm">
              <div className="flex items-center gap-2 mb-1"><FileText size={14}/> Relatórios Técnicos</div>
@@ -238,7 +250,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
         </div>
         
         <div className="mt-4 text-center">
-          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic no-print">Sistema de Gestão Sócioeducativa Timon-MA v3.0</p>
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic no-print">Sistema de Gestão Sócioeducativa Timon-MA v3.3</p>
         </div>
 
       </div>
