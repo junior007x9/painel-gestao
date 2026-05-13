@@ -31,7 +31,8 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900 print:bg-white print:p-0">
-      <div className="max-w-6xl mx-auto">
+      {/* Ajuste importante: Na impressão (print:max-w-none), removemos o limite de largura para usar toda a folha */}
+      <div className="max-w-6xl mx-auto print:max-w-none">
         
         {/* SELETOR DE MÓDULO */}
         <div className="flex flex-wrap justify-center gap-2 mb-6 no-print">
@@ -49,11 +50,11 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
         {/* CABEÇALHO GERAL E ABAS (ATIVO/HISTÓRICO) */}
         <div className={`bg-white rounded-t-xl border-b-2 shadow-sm text-center print:border-b-4 print:border-black print:shadow-none overflow-hidden ${currentMod === 'relatorios' ? 'border-indigo-500' : currentMod === 'audiencias' ? 'border-emerald-500' : 'border-slate-200'}`}>
           <div className="p-6">
-            <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] print:text-black">Estado do Maranhão • Timon</h2>
-            <h1 className="text-xl font-black uppercase mt-1 text-slate-800 print:text-black">
+            <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] print:text-black print:text-sm">Estado do Maranhão • Timon</h2>
+            <h1 className="text-xl font-black uppercase mt-1 text-slate-800 print:text-black print:text-2xl">
               {currentMod === 'internacao' ? "FASE FUNDAÇÃO DO ATENDIMENTO SOCIOEDUCATIVO" : currentMod === 'relatorios' ? "Relatórios de Acompanhamento" : "Controle de Audiências Judiciais"}
             </h1>
-            <p className="text-xs text-slate-500 mt-1 capitalize print:text-black">
+            <p className="text-xs text-slate-500 mt-1 capitalize print:text-black print:text-base">
               {format(new Date(), "eeee, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
             </p>
             <div className="no-print mt-2">
@@ -74,7 +75,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
 
         {/* --- MÓDULO FASE (45 DIAS) --- */}
         {currentMod === 'internacao' && (
-          <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none">
+          <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none print:rounded-none">
             {currentTab === "ativos" && (
               <div className="p-6 border-b bg-slate-50/50 no-print">
                 <form action={addAdolescente} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -116,7 +117,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
                         {currentTab === "ativos" ? (
                           <td className="p-4 text-center font-black bg-green-50/30 text-green-600">
                             {format(dataSaida, 'dd/MM/yyyy')} 
-                            {isVencido && <span className="block text-[9px] uppercase font-bold text-green-700">Prazo Alcançado ✅</span>}
+                            {isVencido && <span className="block text-[9px] uppercase font-bold text-green-700 no-print mt-1">Prazo Alcançado ✅</span>}
                           </td>
                         ) : (
                           <td className="p-4 text-center">
@@ -156,7 +157,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
 
         {/* --- MÓDULO RELATÓRIOS --- */}
         {currentMod === 'relatorios' && (
-          <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none">
+          <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none print:rounded-none">
             {currentTab === "ativos" && (
               <div className="p-6 border-b bg-indigo-50/30 no-print">
                 <form action={addRelatorio} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -175,7 +176,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {(currentTab === 'ativos' ? ativosRel : histRel).map((rel, index) => (
-                  <tr key={rel.id} className="hover:bg-indigo-50/10 transition group">
+                  <tr key={rel.id} className="hover:bg-indigo-50/10 transition group print:break-inside-avoid">
                     <td className="p-4 text-center text-slate-400 font-mono text-xs">{index + 1}</td>
                     <td className="p-4 font-bold uppercase">{rel.nome}</td>
                     <td className="p-4 text-center font-mono text-xs">{rel.nProcesso}</td>
@@ -199,7 +200,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
 
         {/* --- MÓDULO AUDIÊNCIAS --- */}
         {currentMod === 'audiencias' && (
-          <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none">
+          <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none print:rounded-none">
             
             {currentTab === "ativos" && <AudienciaForm />}
             
@@ -211,7 +212,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {(currentTab === 'ativos' ? ativosAud : histAud).map((aud, index) => (
-                  <tr key={aud.id} className="hover:bg-emerald-50/10 transition group">
+                  <tr key={aud.id} className="hover:bg-emerald-50/10 transition group print:break-inside-avoid">
                     <td className="p-4 text-center text-slate-400 font-mono text-xs">{index + 1}</td>
                     <td className="p-4 font-bold text-emerald-800 uppercase">{aud.nProcesso}</td>
                     <td className="p-4 uppercase text-[11px] leading-relaxed italic">{aud.nomes}</td>
@@ -250,17 +251,51 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
         </div>
         
         <div className="mt-4 text-center">
-          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic no-print">Sistema de Gestão Sócioeducativa Timon-MA v3.3</p>
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic no-print">Sistema de Gestão Sócioeducativa Timon-MA v3.4</p>
         </div>
 
       </div>
 
+      {/* ESTILIZAÇÃO CSS DE IMPRESSÃO (Folha A4, Paisagem, Letras Grandes, Sem Quebra de Linha) */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          .no-print { display: none !important; }
-          body { background-color: white !important; }
-          table { border-collapse: collapse !important; width: 100% !important; border: 1px solid #000 !important; }
-          th, td { border: 1px solid #000 !important; color: black !important; padding: 10px !important; }
+          @page {
+            size: A4 landscape; /* Força modo paisagem (deitado) */
+            margin: 10mm; /* Aproveita o máximo das bordas */
+          }
+          
+          /* Esconde tudo que tem a classe no-print (Botões, formulários, rodapés) */
+          .no-print { 
+            display: none !important; 
+          }
+          
+          /* Reseta o fundo para branco para economizar tinta */
+          body { 
+            background-color: white !important; 
+          }
+
+          /* Força a tabela a preencher a folha horizontalmente e define bordas nítidas */
+          table { 
+            width: 100% !important; 
+            border-collapse: collapse !important; 
+            border: 2px solid #000 !important; 
+          }
+
+          /* Regras para as células da tabela (letras grandes e sem quebra de linha) */
+          th, td { 
+            border: 1px solid #000 !important; 
+            color: black !important; 
+            padding: 12px 10px !important; /* Espaçamento interno confortável */
+            font-size: 14pt !important; /* Tamanho da fonte bem grande (Aprox. 18px) */
+            white-space: nowrap !important; /* PROIBE A QUEBRA DE LINHA */
+          }
+
+          /* Destaque visual para o cabeçalho da tabela */
+          th {
+            background-color: #e5e5e5 !important; /* Fundo cinza claro no cabeçalho */
+            -webkit-print-color-adjust: exact; /* Força o navegador a imprimir a cor de fundo */
+            print-color-adjust: exact;
+          }
         }
       `}} />
     </div>
