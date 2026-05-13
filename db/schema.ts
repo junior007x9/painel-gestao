@@ -18,7 +18,7 @@ export const relatorios = sqliteTable("relatorios", {
   nome: text("nome").notNull(),
   nProcesso: text("n_processo").notNull(),
   dataEntrega: text("data_entrega").notNull(),
-  status: text("status").default("ativo"), // 'ativo' ou 'arquivado'
+  status: text("status").default("ativo"),
 });
 
 export const audiencias = sqliteTable("audiencias", {
@@ -27,5 +27,15 @@ export const audiencias = sqliteTable("audiencias", {
   data: text("data").notNull(),
   hora: text("hora").notNull(),
   nProcesso: text("n_processo").notNull(),
-  status: text("status").default("ativo"), // 'ativo' ou 'arquivado'
+  status: text("status").default("ativo"),
+});
+
+// NOVO: Módulo Controle de Internação
+export const controleInternacao = sqliteTable("controle_internacao", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  nome: text("nome").notNull(),
+  dataAdmissao: text("data_admissao").notNull(),
+  comarca: text("comarca").notNull(),
+  tipo: text("tipo").notNull(), // 'Internação Provisória' ou 'Atendimento Inicial'
+  status: text("status").default("ativo"),
 });
