@@ -5,6 +5,9 @@ import { adolescentes, relatorios, audiencias, controleInternacao } from "@/db/s
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
+// Tipo auxiliar para reordenação de itens na tabela (Drag & Drop)
+export type ItemOrdenado = { id: number; ordem: number };
+
 // ==========================================
 // --- MÓDULO: FASE (45 DIAS)
 // ==========================================
@@ -171,6 +174,20 @@ export async function marcarComoEntregue(id: number) {
   await arquivarRelatorio(id); 
 }
 
+// NOVA FUNÇÃO: Atualizar ordem dos relatórios arrastados
+export async function atualizarOrdemRelatorios(itens: ItemOrdenado[]) {
+  try {
+    for (const item of itens) {
+      await db.update(relatorios).set({ ordem: item.ordem }).where(eq(relatorios.id, item.id));
+    }
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao reordenar relatórios:", error);
+    return { success: false };
+  }
+}
+
 // ==========================================
 // --- MÓDULO: AUDIÊNCIAS
 // ==========================================
@@ -231,6 +248,20 @@ export async function reativarAudiencia(id: number) {
 export async function deleteAudiencia(id: number) {
   await db.delete(audiencias).where(eq(audiencias.id, id));
   revalidatePath("/");
+}
+
+// NOVA FUNÇÃO: Atualizar ordem das audiências arrastadas
+export async function atualizarOrdemAudiencias(itens: ItemOrdenado[]) {
+  try {
+    for (const item of itens) {
+      await db.update(audiencias).set({ ordem: item.ordem }).where(eq(audiencias.id, item.id));
+    }
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao reordenar audiências:", error);
+    return { success: false };
+  }
 }
 
 // ==========================================

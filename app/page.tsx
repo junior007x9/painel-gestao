@@ -8,32 +8,46 @@ import { ptBR } from 'date-fns/locale';
 import { Trash2, History, Users, CheckCircle, RotateCcw, Info, FileText, Calendar, Building, Pencil, XCircle } from 'lucide-react';
 import { 
   addAdolescente, editAdolescente, arquivarAdolescente, reativarAdolescente, 
-  addRelatorio, editRelatorio, arquivarRelatorio, reativarRelatorio,
-  arquivarAudiencia, reativarAudiencia, 
+  addRelatorio, editRelatorio, 
   addControleInternacao, editControleInternacao, arquivarControleInternacao, reativarControleInternacao,
   deleteGeneral 
 } from "./actions";
 import PrintButton from "./PrintButton";
 import AudienciaForm from "./AudienciaForm";
+import { TabelaRelatorios, TabelaAudiencias } from "./TabelasArrastaveis"; // IMPORTAÇÃO DAS TABELAS COM DRAG & DROP
 
 export default async function Dashboard({ searchParams }: { searchParams: { mod?: string, tab?: string, editId?: string } }) {
   const params = await searchParams;
   const currentMod = params.mod || "internacao";
   const currentTab = params.tab || "ativos";
-  const editId = params.editId ? parseInt(params.editId) : null; // Detecta se estamos editando
+  const editId = params.editId ? parseInt(params.editId) : null; 
+
+  // Função Auxiliar de Ordenação: Organização Manual (Arrastar) > Cronológica (Mais antigo > Mais novo)
+  const ordenarDados = (dados: any[], campoData: string) => {
+    return dados.sort((a, b) => {
+      if (a.ordem !== b.ordem) return (a.ordem || 0) - (b.ordem || 0);
+      return new Date(a[campoData]).getTime() - new Date(b[campoData]).getTime();
+    });
+  };
 
   // Busca de Dados Integrada
   const ativosAdo = await db.select().from(adolescentes).where(eq(adolescentes.status, 'ativo'));
   const histAdo = await db.select().from(adolescentes).where(eq(adolescentes.status, 'arquivado'));
   
-  const ativosRel = await db.select().from(relatorios).where(eq(relatorios.status, 'ativo'));
-  const histRel = await db.select().from(relatorios).where(eq(relatorios.status, 'arquivado'));
-
-  const ativosAud = await db.select().from(audiencias).where(eq(audiencias.status, 'ativo'));
-  const histAud = await db.select().from(audiencias).where(eq(audiencias.status, 'arquivado'));
-
   const ativosCtrl = await db.select().from(controleInternacao).where(eq(controleInternacao.status, 'ativo'));
   const histCtrl = await db.select().from(controleInternacao).where(eq(controleInternacao.status, 'arquivado'));
+
+  // Aplicando a ordenação em Relatórios
+  const relatoriosBrutosAtivos = await db.select().from(relatorios).where(eq(relatorios.status, 'ativo'));
+  const ativosRel = ordenarDados(relatoriosBrutosAtivos, 'dataEntrega');
+  const relatoriosBrutosHist = await db.select().from(relatorios).where(eq(relatorios.status, 'arquivado'));
+  const histRel = ordenarDados(relatoriosBrutosHist, 'dataEntrega');
+
+  // Aplicando a ordenação em Audiências
+  const audienciasBrutasAtivas = await db.select().from(audiencias).where(eq(audiencias.status, 'ativo'));
+  const ativosAud = ordenarDados(audienciasBrutasAtivas, 'data');
+  const audienciasBrutasHist = await db.select().from(audiencias).where(eq(audiencias.status, 'arquivado'));
+  const histAud = ordenarDados(audienciasBrutasHist, 'data');
 
   // Define cores dinâmicas baseadas no módulo
   let colorTheme = { border: 'border-slate-200', btn: 'border-slate-600 text-slate-700 bg-slate-50' };
@@ -261,7 +275,7 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
         )}
 
         {/* ========================================================= */}
-        {/* MÓDULO 3: RELATÓRIOS */}
+        {/* MÓDULO 3: RELATÓRIOS (AGORA COM ARRASTAR E SOLTAR) */}
         {/* ========================================================= */}
         {currentMod === 'relatorios' && (
           <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none print:rounded-none">
@@ -280,73 +294,22 @@ export default async function Dashboard({ searchParams }: { searchParams: { mod?
                 </form>
               </div>
             )}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-500 uppercase text-[10px] font-bold border-b print:bg-gray-100">
-                    <th className="p-4 w-12 text-center">#</th><th className="p-4 text-left">Nome</th><th className="p-4 text-center">Processo</th><th className="p-4 text-center">Data Limite / Entrega</th><th className="p-4 text-center no-print">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {(currentTab === 'ativos' ? ativosRel : histRel).map((rel, index) => (
-                    <tr key={rel.id} className="hover:bg-indigo-50/10 transition group print:break-inside-avoid">
-                      <td className="p-4 text-center text-slate-400 font-mono text-xs">{index + 1}</td>
-                      <td className="p-4 font-bold uppercase print:text-black print:text-base">{rel.nome}</td>
-                      <td className="p-4 text-center font-mono text-xs print:text-black print:text-base">{rel.nProcesso}</td>
-                      <td className="p-4 text-center font-bold text-indigo-700 print:text-black print:text-base">{format(parseISO(rel.dataEntrega), 'dd/MM/yyyy')}</td>
-                      <td className="p-4 text-center no-print flex justify-center items-center gap-2">
-                        <a href={`?mod=relatorios&tab=${currentTab}&editId=${rel.id}`} className="text-blue-500 hover:bg-blue-50 p-1 rounded transition" title="Editar"><Pencil size={18}/></a>
-                        {currentTab === 'ativos' ? (
-                          <form action={async () => { 'use server'; await arquivarRelatorio(rel.id); }}><button className="text-green-600 hover:bg-green-50 p-1 rounded transition" title="Marcar como Entregue"><CheckCircle size={18}/></button></form>
-                        ) : (
-                          <form action={async () => { 'use server'; await reativarRelatorio(rel.id); }}><button className="text-orange-500 hover:bg-orange-50 p-1 rounded transition" title="Reativar"><RotateCcw size={18}/></button></form>
-                        )}
-                        <form action={async () => { 'use server'; await deleteGeneral(rel.id, 'rel'); }}><button className="text-slate-300 hover:text-red-600 p-1 transition"><Trash2 size={18}/></button></form>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            
+            <TabelaRelatorios dados={currentTab === 'ativos' ? ativosRel : histRel} currentTab={currentTab} />
+            
           </div>
         )}
 
         {/* ========================================================= */}
-        {/* MÓDULO 4: AUDIÊNCIAS */}
+        {/* MÓDULO 4: AUDIÊNCIAS (AGORA COM ARRASTAR E SOLTAR) */}
         {/* ========================================================= */}
         {currentMod === 'audiencias' && (
           <div className="bg-white shadow-xl rounded-b-xl overflow-hidden print:shadow-none print:rounded-none">
             
             {(currentTab === "ativos" || editAud) && <AudienciaForm editData={editAud} />}
             
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-500 uppercase text-[10px] font-bold border-b print:bg-gray-100">
-                    <th className="p-4 w-12 text-center">#</th><th className="p-4 text-left">Processo</th><th className="p-4 text-left">Adolescentes</th><th className="p-4 text-center">Data / Hora</th><th className="p-4 text-center no-print">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {(currentTab === 'ativos' ? ativosAud : histAud).map((aud, index) => (
-                    <tr key={aud.id} className="hover:bg-emerald-50/10 transition group print:break-inside-avoid">
-                      <td className="p-4 text-center text-slate-400 font-mono text-xs">{index + 1}</td>
-                      <td className="p-4 font-bold text-emerald-800 uppercase print:text-black print:text-base">{aud.nProcesso}</td>
-                      <td className="p-4 uppercase text-[11px] leading-relaxed italic print:text-black print:text-base">{aud.nomes}</td>
-                      <td className="p-4 text-center font-bold print:text-black print:text-base">{format(parseISO(aud.data), 'dd/MM/yy')} às {aud.hora}</td>
-                      <td className="p-4 text-center no-print flex justify-center items-center gap-2">
-                        <a href={`?mod=audiencias&tab=${currentTab}&editId=${aud.id}`} className="text-blue-500 hover:bg-blue-50 p-1 rounded transition" title="Editar"><Pencil size={18}/></a>
-                        {currentTab === 'ativos' ? (
-                          <form action={async () => { 'use server'; await arquivarAudiencia(aud.id); }}><button className="text-green-600 hover:bg-green-50 p-1 rounded transition" title="Concluir Audiência"><CheckCircle size={18}/></button></form>
-                        ) : (
-                          <form action={async () => { 'use server'; await reativarAudiencia(aud.id); }}><button className="text-orange-500 hover:bg-orange-50 p-1 rounded transition" title="Reativar"><RotateCcw size={18}/></button></form>
-                        )}
-                        <form action={async () => { 'use server'; await deleteGeneral(aud.id, 'aud'); }}><button className="text-slate-300 hover:text-red-600 p-1 transition"><Trash2 size={18}/></button></form>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <TabelaAudiencias dados={currentTab === 'ativos' ? ativosAud : histAud} currentTab={currentTab} />
+            
           </div>
         )}
 
