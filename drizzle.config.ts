@@ -1,16 +1,15 @@
 import { defineConfig } from 'drizzle-kit';
-import * as dotenv from 'dotenv';
+import { config } from 'dotenv';
 
-// Carrega as variáveis de ambiente do seu arquivo .env, se houver
-dotenv.config(); 
+// Força o Drizzle a ler o arquivo .env.local
+config({ path: '.env.local' }); 
 
 export default defineConfig({
-  schema: './db/schema.ts', // Caminho onde estão as suas tabelas
-  out: './drizzle',         // Pasta onde ele vai guardar o histórico de migrações
-  dialect: 'sqlite',        // Avisa que estamos usando SQLite
+  schema: './db/schema.ts',
+  out: './drizzle',
+  dialect: 'turso', // Especifica que estamos usando Turso/LibSQL
   dbCredentials: {
-    // Aqui ele vai tentar pegar a URL do banco do seu .env. 
-    // Se não tiver, ele cria/usa um arquivo local chamado 'sqlite.db'
-    url: process.env.DATABASE_URL || 'file:./sqlite.db', 
+    url: process.env.DATABASE_URL || process.env.TURSO_DATABASE_URL || '',
+    authToken: process.env.DATABASE_AUTH_TOKEN || process.env.TURSO_AUTH_TOKEN || '',
   },
 });

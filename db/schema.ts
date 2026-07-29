@@ -19,7 +19,7 @@ export const relatorios = sqliteTable("relatorios", {
   nProcesso: text("n_processo").notNull(),
   dataEntrega: text("data_entrega").notNull(),
   status: text("status").default("ativo"),
-  ordem: integer("ordem").default(0).notNull(), // <-- NOVA COLUNA
+  ordem: integer("ordem").default(0), // Corrigido: sem notNull
 });
 
 export const audiencias = sqliteTable("audiencias", {
@@ -29,7 +29,7 @@ export const audiencias = sqliteTable("audiencias", {
   hora: text("hora").notNull(),
   nProcesso: text("n_processo").notNull(),
   status: text("status").default("ativo"),
-  ordem: integer("ordem").default(0).notNull(), // <-- NOVA COLUNA
+  ordem: integer("ordem").default(0), // Corrigido: sem notNull
 });
 
 // NOVO: Módulo Controle de Internação
