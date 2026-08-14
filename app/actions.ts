@@ -78,6 +78,21 @@ export async function reativarAdolescente(id: number) {
   revalidatePath("/");
 }
 
+// NOVA FUNÇÃO: Atualizar ordem dos adolescentes arrastados
+export async function atualizarOrdemAdolescentes(itens: ItemOrdenado[]) {
+  try {
+    for (const item of itens) {
+      await db.update(adolescentes).set({ ordem: item.ordem }).where(eq(adolescentes.id, item.id));
+    }
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao reordenar adolescentes:", error);
+    return { success: false };
+  }
+}
+
+
 // ==========================================
 // --- MÓDULO: CONTROLE DE INTERNAÇÃO GERAL
 // ==========================================
@@ -122,6 +137,21 @@ export async function reativarControleInternacao(id: number) {
   await db.update(controleInternacao).set({ status: 'ativo' }).where(eq(controleInternacao.id, id));
   revalidatePath("/");
 }
+
+// NOVA FUNÇÃO: Atualizar ordem do controle de internação arrastado
+export async function atualizarOrdemControle(itens: ItemOrdenado[]) {
+  try {
+    for (const item of itens) {
+      await db.update(controleInternacao).set({ ordem: item.ordem }).where(eq(controleInternacao.id, item.id));
+    }
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao reordenar controle de internação:", error);
+    return { success: false };
+  }
+}
+
 
 // ==========================================
 // --- MÓDULO: RELATÓRIOS
@@ -187,6 +217,7 @@ export async function atualizarOrdemRelatorios(itens: ItemOrdenado[]) {
     return { success: false };
   }
 }
+
 
 // ==========================================
 // --- MÓDULO: AUDIÊNCIAS

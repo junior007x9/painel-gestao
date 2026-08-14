@@ -10,7 +10,8 @@ export const adolescentes = sqliteTable("adolescentes", {
   motivoSaida: text("motivo_saida"),               
   unidadeInternacao: text("unidade_internacao"),   
   dataInternacao: text("data_internacao"),         
-  observacao: text("observacao"),                  
+  observacao: text("observacao"),
+  ordem: integer("ordem").default(0), // Adicionado para ordenação manual
 });
 
 export const relatorios = sqliteTable("relatorios", {
@@ -19,7 +20,7 @@ export const relatorios = sqliteTable("relatorios", {
   nProcesso: text("n_processo").notNull(),
   dataEntrega: text("data_entrega").notNull(),
   status: text("status").default("ativo"),
-  ordem: integer("ordem").default(0), // Corrigido: sem notNull
+  ordem: integer("ordem").default(0),
 });
 
 export const audiencias = sqliteTable("audiencias", {
@@ -29,10 +30,10 @@ export const audiencias = sqliteTable("audiencias", {
   hora: text("hora").notNull(),
   nProcesso: text("n_processo").notNull(),
   status: text("status").default("ativo"),
-  ordem: integer("ordem").default(0), // Corrigido: sem notNull
+  ordem: integer("ordem").default(0),
 });
 
-// NOVO: Módulo Controle de Internação
+// Módulo Controle de Internação
 export const controleInternacao = sqliteTable("controle_internacao", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   nome: text("nome").notNull(),
@@ -40,4 +41,5 @@ export const controleInternacao = sqliteTable("controle_internacao", {
   comarca: text("comarca").notNull(),
   tipo: text("tipo").notNull(), // 'Internação Provisória' ou 'Atendimento Inicial'
   status: text("status").default("ativo"),
+  ordem: integer("ordem").default(0), // Adicionado para ordenação manual
 });

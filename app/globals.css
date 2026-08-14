@@ -24,3 +24,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* =========================================
+   REGRAS GLOBAIS DE IMPRESSÃO - A4 PAISAGEM 
+   ========================================= */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 5mm; 
+  }
+  
+  .no-print, .hide-print {
+    display: none !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background-color: white !important;
+  }
+}
